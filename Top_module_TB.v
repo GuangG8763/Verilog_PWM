@@ -2,25 +2,47 @@
     
 module Top_module_TB;
 
-reg CLK = 0;
-reg rest = 1;
-wire W_LED1, W_LED2;
+reg R_CLK = 0;
+reg R_rest = 1;
+reg R_inverse = 0; // 1:-1 0:+1
+reg [7:0] R_cnt = 0;
 
-always #5 CLK = ~CLK;
+wire W_PWM;
+
+always #5 R_CLK = ~R_CLK;
 
 initial
 begin
-	rest = 1'b0;
-	#200
-	rest = 1'b1;
+	R_rest = 1'b0;
+	#100
+	R_rest = 1'b1;
+	//repeat (1_000_000) @(posedge R_CLK)
+	//R_cnt <= R_cnt + 1'b1;
 end
 
-Top_module U1
+always
+begin
+	repeat (1_000_000) @(posedge R_CLK) //10ms
+	if(R_cnt >=100)
+		R_inverse = 1; //-1
+	else if(R_cnt == 0)
+		R_inverse = 0; //+1
+		
+	if(R_inverse)
+		R_cnt = R_cnt - 1'b1;
+	else
+		R_cnt = R_cnt + 1'b1;
+end
+
+
+PWM_Module PWM_Module_U1
 (
-	.I_clk	(	CLK		),  
-	.I_rst_n(	rest	),
-	.O_led1	(	W_LED1		), 
-	.O_led2 (	W_LED2		) 
-);
-    
+	.I_clk			(R_CLK	),	// 100Mhz = 10ns
+	.I_rst_n		(R_rest	),	// rst_n_in, active low
+	.I_en			(1'b1	),	// enable active high
+	.I_PWM_percen	(R_cnt	),	// 8bit input range 0-100
+	.O_PWM			(W_PWM	)	// pin output
+);	
+
+
 endmodule
