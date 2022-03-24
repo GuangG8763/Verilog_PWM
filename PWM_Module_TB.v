@@ -1,6 +1,6 @@
 `timescale 1ns / 1ns
     
-module Top_module_TB;
+module PWM_Module_TB;
 
 reg R_CLK = 0;
 reg R_rest = 1;
